@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: scheduling-backend
+    runtime: node
+    plan: free
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && node src/server.js
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: NODE_ENV
+        value: production
+    healthCheckPath: /api/health
+
+  - type: web
+    name: scheduling-frontend
+    runtime: node
+    plan: free
+    buildCommand: cd frontend && npm install && npm run build
+    startCommand: cd frontend && npx next start
+    envVars:
+      - key: NODE_ENV
+        value: production
