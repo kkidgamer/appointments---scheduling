@@ -197,7 +197,7 @@ router.get('/', async (req, res, next) => {
         .where('series_id', s.id)
         .select(
           db.raw("COUNT(*)::int as total"),
-          db.raw("COUNT(visit_id) FILTER (WHERE visit_id IS NOT NULL)::int as with_visit")
+          db.raw("COUNT(resulting_appointment_id) FILTER (WHERE resulting_appointment_id IS NOT NULL)::int as with_visit")
         )
         .first();
       s.occurrence_total = counts.total;
@@ -226,7 +226,7 @@ router.get('/:id', async (req, res, next) => {
     if (!series) return res.status(404).json({ error: 'Series not found' });
 
     const occurrences = await db('visit_series_occurrences')
-      .leftJoin('visits', 'visits.id', 'visit_series_occurrences.visit_id')
+      .leftJoin('visits', 'visits.id', 'visit_series_occurrences.resulting_appointment_id')
       .where('visit_series_occurrences.series_id', series.id)
       .select(
         'visit_series_occurrences.*',
@@ -306,7 +306,7 @@ router.patch('/:id/edit-future', requireAdmin, enforceReadOnly, async (req, res,
       await trx('visit_series_occurrences')
         .where('series_id', series.id)
         .where('occurrence_number', '>=', occurrence_number)
-        .whereNull('visit_id') // Only unbooked occurrences
+        .whereNull('resulting_appointment_id') // Only unbooked occurrences
         .update({ series_version_id: version.id });
 
       return { version, new_version_number: newVersionNumber };
